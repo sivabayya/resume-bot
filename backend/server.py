@@ -155,7 +155,7 @@ I look forward to your response.
 
 Best regards,  
 {req.senderName}  
-Phone : (+91)9989672496
+Phone : (+91)XXXXXXX
 Email: {req.senderEmail}  
 LinkedIn: {req.linkedIn}
 """
