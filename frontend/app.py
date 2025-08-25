@@ -3,12 +3,7 @@ import requests, base64
 
 API_BASE = "http://localhost:8000/api"
 
-st.title("🤖 AI Resume Chatbot (HuggingFace + Gmail)")
-# --- User Info Sidebar ---
-#st.sidebar.header("Your Info")
-#sender_name = st.sidebar.text_input("Your Name", value="Your Name")
-#sender_email = st.sidebar.text_input("Your Email", value="your@email.com")
-#sender_linkedin = st.sidebar.text_input("LinkedIn URL", value="https://linkedin.com/in/yourprofile")
+st.title("🤖 AI Job Application Helper")
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -38,7 +33,7 @@ if user_input := st.chat_input("Paste the JD or ask me to apply for a role..."):
 
     # Step 2: Call generate-email API
     payload = {
-        "senderName": "siva krishna Bayya",   # could be pre-filled from config
+        "senderName": "siva krishna Bayya",
         "senderEmail": "sivabayya4208@gmail.com",
         "linkedIn": "https://www.linkedin.com/in/siva-bayya-50180810/",
         "jobTitle": jobTitle,
@@ -50,44 +45,54 @@ if user_input := st.chat_input("Paste the JD or ask me to apply for a role..."):
     email_res = requests.post(f"{API_BASE}/generate-email", json=payload)
     email_data = email_res.json()
 
-    draft_subject = email_data.get("subject", "Job Application")
-    draft_body = email_data.get("body", "")
+    st.session_state["draft_subject"] = email_data.get("subject", "Job Application")
+    st.session_state["draft_body"] = email_data.get("body", "")
 
-    # Assistant response
-    reply = f"""📌 **Job Classification**
+    #draft_subject = email_data.get("subject", "Job Application")
+    #draft_body = email_data.get("body", "")
+
+    # Assistant response (NOW inside if user_input)
+    reply = f"""**Job Classification**
 - Job Title: {jobTitle}
 - Job Type: {jobType}
 - Company: {company}
 - Recruiter: {recruiter}
+- Recruiter Email: {recruiterEmail if recruiterEmail else 'Not provided'}
 
 ✉️ **Draft Email**
-**Subject:** {draft_subject}
+**Subject:** {st.session_state['draft_subject']}
 
-{draft_body}
-
+{st.session_state['draft_body']}
 """
-st.session_state["messages"].append({"role": "assistant", "content": reply})
-st.info("Would you like me to send this email now? (Please upload your resume first.)")
-st.rerun()
+    st.session_state["messages"].append({"role": "assistant", "content": reply})
+    st.info("Would you like me to send this email now? (Please upload your resume first.)")
+    st.rerun()
 
-# Resume upload + send email (after draft generated)
+# Resume upload + send email
 if st.session_state.get("messages") and "Draft Email" in st.session_state["messages"][-1]["content"]:
     resume = st.file_uploader("📎 Upload Resume (PDF)", type="pdf")
-    if st.button("Send Email"):
+    if st.button("Send Email_preview"):
         if not resume:
             st.error("Please upload a resume first.")
         else:
-            # Last assistant message has draft email
+            # Extract last assistant draft
             email_text = st.session_state["messages"][-1]["content"]
             draft_subject = email_text.split("**Subject:**")[1].split("\n")[0].strip()
             draft_body = "\n".join(email_text.split("**Subject:**")[1].split("\n")[1:]).strip()
-
+            st.subheader(" Review & Edit Your Email")
+            final_subject = st.text_input("Subject", value=draft_subject)
+            final_body = st.text_area("Body", value=draft_body, height=300)
+    if st.button("Send Email_reply"):
+        if not resume:
+            st.error("Please upload a resume first.")
+        else:
             b64_resume = base64.b64encode(resume.read()).decode()
             payload = {
-                #"to": recruiterEmail if recruiterEmail else "recruiter@email.com",  # can be detected or user-specified
                 "to": st.session_state.get("recruiterEmail", "recruiter@email.com"),
-                "subject": draft_subject,
-                "body": draft_body,
+                "subject": st.session_state.get("draft_subject", "Job Application"),
+                "body": st.session_state.get("draft_body", ""),
+                #"subject": draft_subject,
+                #"body": draft_body,
                 "attachment": f"data:application/pdf;base64,{b64_resume}",
                 "fileName": resume.name,
             }
