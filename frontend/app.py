@@ -33,9 +33,9 @@ if user_input := st.chat_input("Paste the JD or ask me to apply for a role..."):
 
     # Step 2: Call generate-email API
     payload = {
-        "senderName": "siva krishna Bayya",
-        "senderEmail": "sivabayya4208@gmail.com",
-        "linkedIn": "https://www.linkedin.com/in/siva-bayya-50180810/",
+        "senderName": "XXXXXX",
+        "senderEmail": "XXXXXX@gmail.com",
+        "linkedIn": "https://www.linkedin.com/in/XXXXXX/",
         "jobTitle": jobTitle,
         "company": company,
         "recruiterName": recruiter,
